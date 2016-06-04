@@ -54,23 +54,22 @@ class Guesser(range:IntRange) {
     }
 
     fun parseResponse(response:String?):Response {
-        when {
-            response.equals("higher", ignoreCase = true) ||response.equals("h", ignoreCase = true) ->
-                return Response.HIGHER;
-            response.equals("lower", ignoreCase = true) || response.equals("l", ignoreCase = true) ->
-                return Response.LOWER;
-            response.equals("yes", ignoreCase = true) || response.equals("y", ignoreCase = true) ->
-                return Response.CORRECT
-            else -> return Response.UNKNOWN;
+        return when(response?.toLowerCase()) {
+            "higher", "h" -> Response.HIGHER;
+            "lower", "l" -> Response.LOWER;
+            "yes", "y" -> Response.CORRECT;
+            else -> Response.UNKNOWN
         }
     }
 
 
     fun printIntro() {
-        println("Think of a number between 1 and 100. I am going to try and guess it.");
-        println("If i guess correctly respond with 'yes' (or 'y')");
-        println("Otherwise respond to with either 'higher' (or 'h') or 'lower' (or 'l')");
-        println("Okay, here we go...");
+        println("""
+        Think of a number between 1 and 100. I am going to try and guess it.
+        If i guess correctly respond with 'yes' (or 'y')"
+        Otherwise respond to with either 'higher' (or 'h') or 'lower' (or 'l')
+        Okay, here we go...
+        """.trimIndent());
     }
 
     enum class Response {
