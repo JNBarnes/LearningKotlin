@@ -6,7 +6,7 @@ package challenges.difficult
  */
 
 fun main(args:Array<String>) {
-    Guesser();
+    Guesser().begin();
 }
 
 class Guesser(range:IntRange) {
@@ -20,7 +20,7 @@ class Guesser(range:IntRange) {
 
     constructor():this(1..100)
 
-    init {
+    fun begin() {
         printIntro();
         while (lastResponse != Response.CORRECT) {
             lastResponse = presentNextGuess();
@@ -32,7 +32,6 @@ class Guesser(range:IntRange) {
                 println("I'm sorry, I didn't understand that.");
             }
         }
-
     }
 
     fun calcNextGuess():Int {
@@ -55,16 +54,14 @@ class Guesser(range:IntRange) {
     }
 
     fun parseResponse(response:String?):Response {
-        if (response == null) {
-            return Response.UNKNOWN;
-        } else if (response.equals("higher", true) || response.equals("h", true)) {
-            return Response.HIGHER;
-        } else if (response.equals("lower", true) || response.equals("l", true)) {
-            return Response.LOWER;
-        } else if (response.equals("yes", true) || response.equals("y", true)) {
-            return Response.CORRECT;
-        } else {
-            return Response.UNKNOWN;
+        when {
+            response.equals("higher", ignoreCase = true) ||response.equals("h", ignoreCase = true) ->
+                return Response.HIGHER;
+            response.equals("lower", ignoreCase = true) || response.equals("l", ignoreCase = true) ->
+                return Response.LOWER;
+            response.equals("yes", ignoreCase = true) || response.equals("y", ignoreCase = true) ->
+                return Response.CORRECT
+            else -> return Response.UNKNOWN;
         }
     }
 
