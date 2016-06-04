@@ -5,20 +5,18 @@ package challenges.difficult
  * Challenge: https://www.reddit.com/r/dailyprogrammer/comments/pii6j/difficult_challenge_1/
  */
 
-fun main(args:Array<String>) {
+fun main(args: Array<String>) {
     Guesser().begin();
 }
 
-class Guesser(range:IntRange) {
+class Guesser(range: IntRange = 1..100) {
 
-    private var range = range;
-    private var upperLimit:Int = range.last;
-    private var lowerLimit:Int = range.first;
-    private var turnCount:Int = 0;
-    private var lastGuess:Int = 0;
-    private var lastResponse:Response = Response.UNKNOWN;
 
-    constructor():this(1..100)
+    private var upperLimit: Int = range.last;
+    private var lowerLimit: Int = range.first;
+    private var turnCount: Int = 0;
+    private var lastGuess: Int = 0;
+    private var lastResponse: Response = Response.UNKNOWN;
 
     fun begin() {
         printIntro();
@@ -34,18 +32,22 @@ class Guesser(range:IntRange) {
         }
     }
 
-    fun calcNextGuess():Int {
+    fun calcNextGuess(): Int {
         var roundingFactor = 0;
-        if (lastResponse == Response.HIGHER) {
-            lowerLimit = lastGuess;
-            roundingFactor = 1; //compensates for rounding down
-        } else if (lastResponse == Response.LOWER) {
-            upperLimit = lastGuess;
+
+        when (lastResponse) {
+            Response.HIGHER -> {
+                lowerLimit = lastGuess;
+                roundingFactor = 1; //compensates for rounding down
+            }
+            Response.LOWER -> {
+                upperLimit = lastGuess;
+            }
         }
         return (lowerLimit + ((upperLimit - lowerLimit) / 2)) + roundingFactor;
     }
 
-    fun presentNextGuess():Response {
+    fun presentNextGuess(): Response {
         val nextGuess = calcNextGuess();
         println("Is your number $nextGuess?");
         val response = readLine();
@@ -53,8 +55,8 @@ class Guesser(range:IntRange) {
         return parseResponse(response);
     }
 
-    fun parseResponse(response:String?):Response {
-        return when(response?.toLowerCase()) {
+    fun parseResponse(response: String?): Response {
+        return when (response?.toLowerCase()) {
             "higher", "h" -> Response.HIGHER;
             "lower", "l" -> Response.LOWER;
             "yes", "y" -> Response.CORRECT;
