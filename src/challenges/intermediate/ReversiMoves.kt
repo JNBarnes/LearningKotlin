@@ -1,6 +1,13 @@
 package challenges.intermediate
 
-import util.array2d
+
+import util.direction.Direction
+import util.game.GameValue
+import util.arrays.array2d
+import util.direction.Point
+import util.direction.transformPoint
+import util.game.parsePosition
+import util.game.printGameBoard
 
 
 /**
@@ -21,7 +28,7 @@ val input = """
             """.trimIndent().lines();
 
 val board = array2d(8, 8) { GameValue.EMPTY }
-var legalMoveCount:Int = 0;
+var legalMoveCount: Int = 0;
 
 
 fun main(args: Array<String>) {
@@ -29,51 +36,15 @@ fun main(args: Array<String>) {
     markLegalMoves()
     println("$legalMoveCount legal moves for ${getActivePlayer()}")
     println(printGameBoard(board))
+    board.forEach { }
 
 }
-
-enum class GameValue {
-    X, O, EMPTY, SUGGESTION
-}
-
-enum class Direction {
-    UP, DOWN, LEFT, RIGHT,
-    UP_LEFT, UP_RIGHT,
-    DOWN_LEFT, DOWN_RIGHT
-}
-
 
 fun parseGameBoard(input: List<String>) {
     for (i in 1..(input.size - 1)) {
         for (j in 0..7) {
             board[i - 1][j] = parsePosition(input[i][j].toString())
         }
-    }
-}
-
-fun printGameBoard(board: Array<Array<GameValue>>): String {
-    var printed: String = "";
-    for (i in 1..(board.size - 1)) {
-        for (j in 0..7) {
-            printed += when (board [i][j]) {
-                GameValue.X -> "X"
-                GameValue.O -> "O"
-                GameValue.EMPTY -> "-"
-                GameValue.SUGGESTION -> "*"
-            }
-        }
-        printed += "\n"
-    }
-    return printed
-}
-
-fun parsePosition(char: String): GameValue {
-    return when (char) {
-        "X", "x" -> GameValue.X
-        "O", "o" -> GameValue.O
-        "-" -> GameValue.EMPTY
-        "*" -> GameValue.SUGGESTION
-        else -> GameValue.EMPTY
     }
 }
 
@@ -108,7 +79,7 @@ fun markLegalMoves() {
 fun findSuggestionInDirection(direction: Direction, position: Point, depth: Int = 0): Point? {
     val next = transformPoint(position, direction);
     try {
-        return when(board[next.x][next.y]){
+        return when (board[next.x][next.y]) {
             getOtherPlayer() -> findSuggestionInDirection(direction, next, depth + 1)
             GameValue.EMPTY -> if (depth > 0) next else null
             else -> null
@@ -117,24 +88,6 @@ fun findSuggestionInDirection(direction: Direction, position: Point, depth: Int 
         return null
     }
 }
-
-
-fun transformPoint(point: Point, direction: Direction): Point {
-    with(point) {
-        return when (direction) {
-            Direction.UP -> Point(x, y + 1)
-            Direction.DOWN -> Point(x, y - 1)
-            Direction.LEFT -> Point(x - 1, y)
-            Direction.RIGHT -> Point(x + 1, y)
-            Direction.UP_LEFT -> Point(x - 1, y + 1)
-            Direction.UP_RIGHT -> Point(x + 1, y + 1)
-            Direction.DOWN_LEFT -> Point(x - 1, y - 1)
-            Direction.DOWN_RIGHT -> Point(x + 1, y - 1)
-        }
-    }
-}
-
-data class Point(var x: Int = 0, var y: Int = 0)
 
 
 
