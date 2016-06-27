@@ -1,6 +1,5 @@
 package challenges.intermediate
 
-import sun.security.util.Length
 import util.random.randomInt
 import java.util.*
 
@@ -10,7 +9,7 @@ import java.util.*
  */
 
 fun main(args: Array<String>) {
-    Markov(2, """
+    Markov(3, """
     Blessed are the poor in spirit,
     for theirs is the kingdom of heaven.
     Blessed are those who mourn,
@@ -29,15 +28,13 @@ fun main(args: Array<String>) {
 
 class Markov(val prefixLength: Int = 2, trainingSet: String) {
     var input: MutableList<String>
-    var nGrams: MutableList<NGram> = mutableListOf()
+    var nGramMap: MutableMap<NGram, MutableList<String>> = mutableMapOf()
     val NON_WORD = "NON_WORD"
 
     init {
         input = trainingSet.split(Regex("""\b""")).toMutableList()
         input = input.filter {
-            if (it != null) {
-                (Regex("""\w*""").matches(it))
-            } else false
+            Regex("""\w*""").matches(it)
         } as MutableList<String>
 
         for (i in 0..prefixLength - 1) {
@@ -46,20 +43,25 @@ class Markov(val prefixLength: Int = 2, trainingSet: String) {
         input.add(NON_WORD)// last ngram's suffix
 
         buildNGramList()
-        nGrams
-        println(generateText())
+        nGramMap;
     }
 
     fun buildNGramList() {
         for (i in 0..input.size - prefixLength - 1) {
-            var nGram = NGram(getPrefixList(i), mutableListOf(input[i + prefixLength]))
-            var existing = nGrams.indexOf(nGram)
-            if (existing >= 0) {
-                nGrams[existing].suffixes.addAll(nGram.suffixes)
-            } else {
-                nGrams.add(nGram)
+            val prefixes = getPrefixAsArray(i)
+            val suffixes = nGramMap.getOrPut(NGram(prefixes)) {
+                mutableListOf()
             }
+            suffixes.add(input[i + prefixLength])
         }
+    }
+
+    fun getPrefixAsArray(startingIndex: Int): Array<String> {
+        val prefixes = Array<String>(prefixLength, { "" })
+        for (i in 0..prefixLength - 1) {
+            prefixes[i] = input[startingIndex + i]
+        }
+        return prefixes
     }
 
     fun getPrefixList(startingIndex: Int): MutableList<String> {
@@ -70,20 +72,24 @@ class Markov(val prefixLength: Int = 2, trainingSet: String) {
         return prefixList
     }
 
-    fun generateText(): String {
+    fun generateText(maxWordCount: Int = input.size): String {
         var output = ""
-        var suffixes = 0;
-        var prefixList = getPrefixList(0)
-        while (suffixes < input.size) {
-            var nGram = findNGram(prefixList)
-            if (nGram != null) {
-                var suffix = nGram.suffixes[randomInt(0..nGram.suffixes.size)]
-                output = appendToOutput(suffix, output)
-                prefixList.add(suffix)
-                prefixList = prefixList.subList(1, prefixList.size)
+        var wordCount = 0;
+        var prefixes = getPrefixAsArray(randomInt(0..input.size - prefixLength))
+        while (wordCount < maxWordCount) {
+            var suffix: String
+            val suffixes = nGramMap[NGram(prefixes)]
 
+            if (suffixes != null) {
+                suffix = suffixes[randomInt(0..suffixes.size)]
+            } else {
+                suffix = input[randomInt(0..input.size)]
+                println("No suffix found, selecting random word.")
             }
-            suffixes++
+            output = appendToOutput(suffix, output)
+            prefixes = prefixes.plus(suffix)
+            prefixes = prefixes.sliceArray(1..prefixes.size - 1)
+            wordCount++
         }
         return output
     }
@@ -92,19 +98,15 @@ class Markov(val prefixLength: Int = 2, trainingSet: String) {
         return if (!append.equals(NON_WORD)) "$output $append" else "$output"
     }
 
-    fun findNGram(prefixes: MutableList<String>): NGram? {
-        return try {
-            nGrams.first { it.prefix.containsAll(prefixes) }
-        } catch(e: NoSuchElementException) {
-            null
-        }
-    }
-
-    data class NGram(var prefix: MutableList<String>, var suffixes: MutableList<String>) {
+    data class NGram(val prefixes: Array<String>) {
         override fun equals(other: Any?): Boolean {
             if (other is NGram) {
-                return other.prefix.containsAll(this.prefix)
+                return Arrays.equals(prefixes, other.prefixes)
             } else return false
+        }
+
+        override fun hashCode(): Int {
+            return Arrays.hashCode(prefixes)
         }
     }
 }
